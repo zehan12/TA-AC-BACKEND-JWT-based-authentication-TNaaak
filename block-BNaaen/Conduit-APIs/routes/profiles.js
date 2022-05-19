@@ -9,5 +9,6 @@ router.get( '/:username', profilesRouter.getUsername  );
 router.post( '/:username/follow', auth.verifyToken, profilesRouter.followUser );
 
 // DELETE /api/profiles/:username/follow
+router.delete( '/:username/follow', auth.verifyToken, profilesRouter.unfollowUser );
 
 module.exports = router;
