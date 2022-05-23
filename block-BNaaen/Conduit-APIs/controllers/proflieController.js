@@ -3,11 +3,12 @@ const User = require('../models/User');
 module.exports = {
     getUsername: async ( req, res, next ) => {
         try {
-            console.log(req.params.username)
+            console.log(req.user)
             const username = req.params.username;
-            const user = await User.findOne( { username } );
+            const user = await User.findOne( { username } ).select( 'username bio image following' );
+            const following = user.following.includes(String(req.users.userId));
             if ( user ) {
-                res.status( 200 ).json( { user } )
+                res.status( 200 ).json( { profile: user, following } );
             } else {
                 res.status( 400 ).json( { error: "user not found!" } )
             }
@@ -24,10 +25,6 @@ module.exports = {
             if ( !userToFollow ) {
                 res.status( 400 ).json( { error: "User not found" } )
             } 
-            //* user and following user same
-            if ( req.users.userId == userToFollow._id ) {
-                res.status( 400 ).json( { error: "you can't follow yourself" } )
-            }
             //* user to follow found
             if ( userToFollow ) {
                 const userFollwingList = await User.findById(req.users.userId);
@@ -39,7 +36,7 @@ module.exports = {
                 if ( req.users.userId != userToFollow._id ) {
                     const user = await User.findByIdAndUpdate( req.users.userId, { $push: { following: userToFollow._id } }, { new: true } );
                     await User.findByIdAndUpdate( userToFollow._id, { $push: { followers: req.users.userId } }, { new: true }  )
-                    res.status( 200 ).json( { msg:`${user.username} follow ${userToFollow.username}`, user: {
+                    res.status( 200 ).json( { msg:`${user.username} follow ${userToFollow.username}`, profile: {
                         email: user.email,
                         bio: user.bio,
                         image: user.image,
@@ -72,7 +69,7 @@ module.exports = {
                 if ( req.users.userId != userToUnfollow._id ) {
                     const user = await User.findByIdAndUpdate( req.users.userId, { $pull: { following: userToUnfollow._id } }, { new: true } );
                     await User.findByIdAndUpdate( userToUnfollow._id, { $pull: { followers: req.users.userId } } )
-                    res.status( 200 ).json( { msg:`${user.username} unfollow ${userToUnfollow.username}`, user: {
+                    res.status( 200 ).json( { msg:`${user.username} unfollow ${userToUnfollow.username}`, proflie: {
                         email: user.email,
                         bio: user.bio,
                         image: user.image,

@@ -5,22 +5,17 @@ var URLSlug = require("mongoose-slug-generator");
 mongoose.plugin(URLSlug);
 
 var articleSchema = new Schema( { 
-    title: { type: String, required: true, unique: true },
+    title: { type: String, required: true },
     description: String,
     body: String,
     tagList: [ { type: String } ],
     author: { type: Schema.Types.ObjectId, ref: "user" },
     comments: [ { type: Schema.Types.ObjectId, ref: "comment" } ],
+    favorites:[ { type: Schema.Types.ObjectId, ref: "user" } ],
     likes: { type: Number, default: 0 },
     likedBy: [ { type: Schema.Types.ObjectId, ref: "user" } ],
-    slug: { type: String, unique: true, slug: "title" }
-} )
-
-articleSchema.pre("save", function(next) {
-    this.slug = this.title.split(" ").join("-");
-    next();
-});
-
+    slug: { type: String, unique: true, slug: "title", slug_padding_size: 3 }
+}, { timestamps: true } );
 
 
 module.exports = mongoose.model( "Article", articleSchema );

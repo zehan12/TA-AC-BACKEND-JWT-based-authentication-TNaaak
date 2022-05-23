@@ -52,8 +52,14 @@ module.exports = {
     //! current user to display
     currentUser : async ( req, res, next ) => {
         try {
-            const user = await User.findById( req.users.userId );
-            res.status( 200 ).json( { user: user } )
+            const user = await User.findById( req.users.userId ).select('-password');
+            res.status( 200 ).json( { user: {
+                email: user.email,
+                token: req.headers.authorization,
+                username: user.name,
+                bio: user.bio,
+                image: user.image
+            } } )
         } catch ( error ) {
             return next ( error );
         }

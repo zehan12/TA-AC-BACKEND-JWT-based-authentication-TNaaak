@@ -11,7 +11,7 @@ const userSchema = new Schema ( {
     token: String,
     bio: String,
     image: String,
-    commentId: { type: Schema.Types.ObjectId, ref:"comment" },
+    commentId: [ { type: Schema.Types.ObjectId, ref:"comment" } ],
     followers: [ { type: Schema.Types.ObjectId, ref: 'user' } ],
     following: [ { type: Schema.Types.ObjectId, ref: 'user' } ]
 }, { timestamps: true } );
