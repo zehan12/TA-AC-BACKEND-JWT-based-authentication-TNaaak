@@ -2,7 +2,7 @@ var path = require('path');
 // Warning: Accessing non-existent property 'path' of module exports inside circular dependency
 
 const Article = require("../models/Article");
-const Comment = require("../models/comment");
+const Comment = require("../models/Comment");
 const User = require("../models/User");
 
 module.exports = {

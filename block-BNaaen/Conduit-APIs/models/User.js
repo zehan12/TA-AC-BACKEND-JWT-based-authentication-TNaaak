@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const bcyrpt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Article = require('./Article');
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema ( {
+const userSchema = new Schema ( { 
     name: { type: String, required: true },
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
@@ -11,6 +12,7 @@ const userSchema = new Schema ( {
     token: String,
     bio: String,
     image: String,
+    articles: [ { type: Schema.Types.ObjectId, ref: "article" } ], 
     commentId: [ { type: Schema.Types.ObjectId, ref:"comment" } ],
     followers: [ { type: Schema.Types.ObjectId, ref: 'user' } ],
     following: [ { type: Schema.Types.ObjectId, ref: 'user' } ]
@@ -32,6 +34,15 @@ userSchema.methods.verifyPassword = async function( password ) {
     }
 }
 
+// userSchema.methods.articles = async function () {
+//     try {
+//         var results = await Article.find({author: this.id})
+//         return results
+//     } catch ( error ) {
+//         return error;
+//     }
+// }
+
 userSchema.methods.signToken = async function() {
     console.log( this );
     const payload = { userId: this.id, email: this.email, name: this.name };
@@ -44,11 +55,16 @@ userSchema.methods.signToken = async function() {
 }
 
 userSchema.methods.userJSON = function( token ) {
+    
     return {
-        name: this.name,
         email: this.email,
-        token: token
+        token: token,
+        username: this.username,
+        bio: this.bio,
+        image: this.image
     }
 }
+
+// function extractPassword
 
 module.exports = mongoose.model( 'User', userSchema );

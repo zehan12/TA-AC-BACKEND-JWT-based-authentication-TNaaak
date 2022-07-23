@@ -24,7 +24,7 @@ module.exports = {
                 req.users = payload;
                 next();
             } else {
-                res.status( 400 ).json( { error: "ACCESS: DENIED! (Token Required)" } );
+                next();
             }
         } catch (error) {
             return next ( error )

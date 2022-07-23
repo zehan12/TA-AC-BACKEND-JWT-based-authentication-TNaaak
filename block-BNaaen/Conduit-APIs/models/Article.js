@@ -9,7 +9,7 @@ var articleSchema = new Schema( {
     description: String,
     body: String,
     tagList: [ { type: String } ],
-    author: { type: Schema.Types.ObjectId, ref: "user" },
+    author: { type: Schema.Types.ObjectId, ref: "user", required:true },
     comments: [ { type: Schema.Types.ObjectId, ref: "comment" } ],
     favorites:[ { type: Schema.Types.ObjectId, ref: "user" } ],
     likes: { type: Number, default: 0 },
