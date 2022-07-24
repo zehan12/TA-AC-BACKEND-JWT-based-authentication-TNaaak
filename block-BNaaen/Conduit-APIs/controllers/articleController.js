@@ -1,5 +1,6 @@
 const { find } = require("../models/Article");
 const Article = require("../models/Article");
+const User = require("../models/User");
 
 // Example request body:
 
@@ -17,15 +18,26 @@ module.exports = {
         try {
             const article = req.body;
             if ( req.body.tagList ) {
-                article.tagList = req.body.tagList.split(",").map(v=>v.toLowerCase());
+                console.log(req.body.tagList)
+                article.tagList = req.body.tagList.map(v=>v.toLowerCase());
+                console.log(article)
             }
             article.author = req.users.userId;
             const articleCreated = await Article.create( article );
+            const author = await User.findByIdAndUpdate(article.author, { $push: { articles: articleCreated.id } }, { new: true } );
+            console.log(author)
             res.status( 200 ).json( { article: {
                 title: articleCreated.title,
                 description: articleCreated.description,
                 body: articleCreated.description,
-                tagList: articleCreated.tagList
+                tagList: articleCreated.tagList,
+                author: {
+                    username: author.username,
+                    bio: author.bio,
+                    image: author.image,
+                    following: false
+                }
+
             } } );            
         } catch (error) {
             return next ( error );

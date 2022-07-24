@@ -3,7 +3,7 @@ const profilesRouter = require('../controllers/proflieController');
 const auth = require('../middlewares/auth');
 
 // GET /api/profiles/:username
-router.get( '/:username', profilesRouter.getUsername  );
+router.get( '/:username', auth.authOpt, profilesRouter.getUsername  );
 
 // POST /api/profiles/:username/follow
 router.post( '/:username/follow', auth.verifyToken, profilesRouter.followUser );
