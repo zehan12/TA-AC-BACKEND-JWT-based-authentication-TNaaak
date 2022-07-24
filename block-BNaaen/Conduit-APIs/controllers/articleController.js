@@ -14,85 +14,115 @@ const User = require("../models/User");
 // }
 
 module.exports = {
-    createArticle: async ( req, res, next ) => {
+    createArticle: async (req, res, next) => {
         try {
             const article = req.body;
-            if ( req.body.tagList ) {
+            if (req.body.tagList) {
                 console.log(req.body.tagList)
-                article.tagList = req.body.tagList.map(v=>v.toLowerCase());
+                article.tagList = req.body.tagList.map(v => v.toLowerCase());
                 console.log(article)
             }
             article.author = req.users.userId;
-            const articleCreated = await Article.create( article );
-            const author = await User.findByIdAndUpdate(article.author, { $push: { articles: articleCreated.id } }, { new: true } );
+            const articleCreated = await Article.create(article);
+            const author = await User.findByIdAndUpdate(article.author, { $push: { articles: articleCreated.id } }, { new: true });
             console.log(author)
-            res.status( 200 ).json( { article: {
-                title: articleCreated.title,
-                description: articleCreated.description,
-                body: articleCreated.description,
-                tagList: articleCreated.tagList,
-                author: {
-                    username: author.username,
-                    bio: author.bio,
-                    image: author.image,
-                    following: false
-                }
+            res.status(200).json({
+                article: {
+                    title: articleCreated.title,
+                    description: articleCreated.description,
+                    body: articleCreated.description,
+                    tagList: articleCreated.tagList,
+                    author: {
+                        username: author.username,
+                        bio: author.bio,
+                        image: author.image,
+                        following: false
+                    }
 
-            } } );            
+                }
+            });
         } catch (error) {
-            return next ( error );
+            return next(error);
         }
     },
 
-    updateArticle: async ( req, res, next ) => {
+    updateArticle: async (req, res, next) => {
         try {
             const articleUpdate = req.body;
-            console.log( articleUpdate )
-            if ( articleUpdate.title ) {
-                const dbSlug = req.body.title.split(" ").map(v=>v.toLowerCase()).join("-");
-                console.log(dbSlug,"dbSlug")
-                    const databaseSlug  = await Article.findOne( { dbSlug } ).select("slug");
-                    if ( !databaseSlug ) { 
-                        articleUpdate.slug = dbSlug;
-                    }
-                    if ( dbSlug == databaseSlug.slug ) {
-                        articleUpdate.slug = dbSlug+"-"+(Math.random()).toString(36).slice(2, 7)
-                    }
-                    console.log(articleUpdate,"ops")
+            console.log(articleUpdate)
+            const { author } = await Article.findOne({ slug: req.params.slug });
+            if (req.users.userId == author ) {
+                const articleUpdated = await Article.findOneAndUpdate({ slug: req.params.slug }, articleUpdate, { new: true })
+                res.json({ article: { articleUpdated } });
+            } else {
+                res.status(201).json( { error: "this article is not created by you" })
             }
-            const { userId } = await Article.findById( { slug: req.params.slug } )
-
-            // const articleUpdated = await Article.findOneAndUpdate( { slug: req.params.slug }, articleUpdate, { new: true } )
-            res.json({article:{ articleUpdate } });
+            // if ( articleUpdate.title ) {
+            //     const dbSlug = req.body.title.split(" ").map(v=>v.toLowerCase()).join("-");
+            //     console.log(dbSlug,"dbSlug")
+            //         const databaseSlug  = await Article.findOne( { dbSlug } ).select("slug");
+            //         if ( !databaseSlug ) { 
+            //             articleUpdate.slug = dbSlug;
+            //         }
+            //         if ( dbSlug == databaseSlug.slug ) {
+            //             articleUpdate.slug = dbSlug+"-"+(Math.random()).toString(36).slice(2, 7)
+            //         }
+            //         console.log(articleUpdate,"ops")
+            // }
+            // const { userId } = await Article.findById( { slug: req.params.slug } )
         } catch (error) {
-            return next( error );
+            return next(error);
         }
     },
 
-    deleteAtricle: async ( req, res, next ) => {
+    deleteAtricle: async (req, res, next) => {
         try {
-            const { userId } = Article.findOne( { slug: req.params.slug } );
-            if ( req.users.userId == userId ) {
-                const articleDelete = await findByIdAndDelete( { slug: req.params.slug } );
-                res.json( { articleDelete } )
+            const { author } = await Article.findOne({ slug: req.params.slug });
+            if (req.users.userId == author ) {
+                const articleDelete = await Article.findOneAndDelete({ slug: req.params.slug });
+                await User.findByIdAndUpdate( req.users.userId, { $pull : { articles: articleDelete.id } } );
+                res.status(201).json({ articleDelete })
+            } else {
+                res.status(201).json( { error: "this article is not created by you" })
             }
-        } catch ( error ) {
-            return next( error )
+        } catch (error) {
+            return next(error)
         }
     },
 
-    singleArticle: async ( req, res, next ) => {
+
+    singleArticle: async (req, res, next) => {
         try {
             const slug = req.params.slug
-            console.log(slug)
-            const article = await Article.findOne({slug:slug})
-            console.log(article)
-            res.status( 200 ).json( { article} )
+            const article = await Article.findOne({ slug: slug })
+                .populate({ path: 'author', model: User })
+                const following = !req.users ? false : 
+                                  article.author.following.includes(req.users.userId);
+            res.status(200).json({
+                article:
+                {
+                    slug: article.slug,
+                    title: article.title,
+                    description: article.description,
+                    body: article.body,
+                    tagList:  article.tagList,
+                    createdAt: article.createdAt,
+                    updatedAt: article.updatedAt,
+                    favorited: article.favorited,
+                    favoritedCount: article.favoritedCount,
+                    author: {
+                        username: article.author.username,
+                        bio: article.author.bio,
+                        image: article.author.image,
+                        following: following
+                    }
+                }
+            })
         } catch (error) {
-            return next( error );
+            return next(error);
         }
     },
-
+  
 
 }
 

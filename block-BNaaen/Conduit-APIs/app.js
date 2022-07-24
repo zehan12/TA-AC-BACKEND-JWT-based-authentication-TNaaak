@@ -12,7 +12,7 @@ const connectionParams={
   useUnifiedTopology: true 
 }
 
-mongoose.connect("mongodb+srv://zehan:zehan@cluster0.1rlox.mongodb.net/?retryWrites=true&w=majority", 
+mongoose.connect("mongodb+srv://zehan:zehan@cluster0.1rlox.mongodb.net/?retryWrites=true&w=majority",  { useNewUrlParser: true, useUnifiedTopology: true },
 (err) => { console.log('Connected to database: ', err ? err : true); } );
 
 

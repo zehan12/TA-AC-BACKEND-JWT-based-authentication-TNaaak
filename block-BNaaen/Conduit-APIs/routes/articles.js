@@ -60,7 +60,10 @@ router.post( '/', auth.verifyToken, articleController.createArticle );
 router.put( '/:slug',  auth.verifyToken, articleController.updateArticle );
 
 // single article
-router.get( '/:slug', auth.verifyToken, articleController.singleArticle );
+router.get( '/:slug', auth.authOpt, articleController.singleArticle );
+
+//delete articles/slug
+router.delete( '/:slug', auth.verifyToken, articleController.deleteAtricle );
 
 
 router.get( "/", async ( req, res, next ) => {
