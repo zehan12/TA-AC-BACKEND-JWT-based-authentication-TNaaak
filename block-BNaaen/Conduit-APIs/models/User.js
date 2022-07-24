@@ -13,7 +13,8 @@ const userSchema = new Schema ( {
     bio: String,
     image: String,
     articles: [ { type: Schema.Types.ObjectId, ref: "article" } ], 
-    commentId: [ { type: Schema.Types.ObjectId, ref:"comment" } ],
+    // commentId: [ { type: Schema.Types.ObjectId, ref:"comment" } ],
+    favorites: [ { type: Schema.Types.ObjectId, ref: "article" } ],
     followers: [ { type: Schema.Types.ObjectId, ref: 'user' } ],
     following: [ { type: Schema.Types.ObjectId, ref: 'user' } ]
 }, { timestamps: true } );
