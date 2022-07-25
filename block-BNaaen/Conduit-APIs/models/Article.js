@@ -7,7 +7,7 @@ mongoose.plugin(URLSlug);
 var articleSchema = new Schema( { 
     title: { type: String, required: true },
     description: String,
-    body: String,
+    body: { type: String, required: true },
     tagList: [ { type: String } ],
     author: { type: Schema.Types.ObjectId, ref: "user", required:true },
     comments: [ { type: Schema.Types.ObjectId, ref: "comment" } ],

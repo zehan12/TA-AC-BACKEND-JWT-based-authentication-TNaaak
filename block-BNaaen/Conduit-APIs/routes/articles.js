@@ -6,6 +6,8 @@ const auth = require("../middlewares/auth");
 // GET /api/articles
 // Returns most recent articles globally by default, provide tag, author or favorited query parameter to filter results
 
+router.get( "/", auth.authOpt, articleController.globalFeed );
+
 // Query Parameters:
 
 // Filter by tag:
@@ -30,29 +32,15 @@ const auth = require("../middlewares/auth");
 
 // Authentication optional, will return multiple articles, ordered by most recent first
 
-// Feed
-// router.get( "/",   )
 
-// Feed Articles
+//! Feed Articles
 // GET /api/articles/feed
+router.get( "feed", auth.verifyToken, articleController.articleFeed );
 
 // Can also take limit and offset query parameters like List Articles
 
 // Authentication required, will return multiple articles created by followed users, ordered by most recent first.
 
-// Get Article
-// GET /api/articles/:slug
-
-// No authentication required, will return single article
-
-// Create Article
-// POST /api/articles
-
-// Authentication required, will return an Article
-
-// Required fields: title, description, body
-
-// Optional fields: tagList as an array of Strings
 
 router.post( '/', auth.verifyToken, articleController.createArticle );
 
