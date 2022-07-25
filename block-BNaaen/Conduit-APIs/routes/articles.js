@@ -65,6 +65,9 @@ router.get( '/:slug', auth.authOpt, articleController.singleArticle );
 //delete articles/slug
 router.delete( '/:slug', auth.verifyToken, articleController.deleteAtricle );
 
+//POST /api/articles/:slug/favorite
+router.post( '/:slug/favorite', auth.verifyToken, articleController.favoriteArticle )
+
 
 router.get( "/", async ( req, res, next ) => {
     try {

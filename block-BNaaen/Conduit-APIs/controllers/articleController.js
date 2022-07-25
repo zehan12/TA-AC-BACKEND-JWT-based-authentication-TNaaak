@@ -1,6 +1,7 @@
 const { find } = require("../models/Article");
 const Article = require("../models/Article");
 const User = require("../models/User");
+const Comment = require("../models/Comment")
 
 // Example request body:
 
@@ -24,9 +25,13 @@ module.exports = {
             }
             article.author = req.users.userId;
             const articleCreated = await Article.create(article);
-            const author = await User.findByIdAndUpdate(article.author, { $push: { articles: articleCreated.id } }, { new: true });
+            const author = await User.findByIdAndUpdate(
+                article.author,
+                 { $push: { articles: articleCreated.id } },
+                  { new: true }
+                );
             console.log(author)
-            res.status(200).json({
+            res.status(201).json({
                 article: {
                     title: articleCreated.title,
                     description: articleCreated.description,
@@ -50,37 +55,35 @@ module.exports = {
         try {
             const articleUpdate = req.body;
             console.log(articleUpdate)
+            if(req.body.title){
+                articleUpdate.article.slug = req.body.title.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '').split(" ").join("-").toLowerCase() + "-" + random();
+            }
             const { author } = await Article.findOne({ slug: req.params.slug });
             if (req.users.userId == author ) {
-                const articleUpdated = await Article.findOneAndUpdate({ slug: req.params.slug }, articleUpdate, { new: true })
+                const articleUpdated = await Article.findOneAndUpdate(
+                    { slug: req.params.slug }, 
+                    articleUpdate,
+                     { new: true }
+                )
                 res.json({ article: { articleUpdated } });
             } else {
-                res.status(201).json( { error: "this article is not created by you" })
+                res.status(400).json( { error: "this article is not created by you" })
             }
-            // if ( articleUpdate.title ) {
-            //     const dbSlug = req.body.title.split(" ").map(v=>v.toLowerCase()).join("-");
-            //     console.log(dbSlug,"dbSlug")
-            //         const databaseSlug  = await Article.findOne( { dbSlug } ).select("slug");
-            //         if ( !databaseSlug ) { 
-            //             articleUpdate.slug = dbSlug;
-            //         }
-            //         if ( dbSlug == databaseSlug.slug ) {
-            //             articleUpdate.slug = dbSlug+"-"+(Math.random()).toString(36).slice(2, 7)
-            //         }
-            //         console.log(articleUpdate,"ops")
-            // }
-            // const { userId } = await Article.findById( { slug: req.params.slug } )
         } catch (error) {
             return next(error);
         }
     },
 
     deleteAtricle: async (req, res, next) => {
-        try {
+        try {            
             const { author } = await Article.findOne({ slug: req.params.slug });
             if (req.users.userId == author ) {
                 const articleDelete = await Article.findOneAndDelete({ slug: req.params.slug });
-                await User.findByIdAndUpdate( req.users.userId, { $pull : { articles: articleDelete.id } } );
+                await User.findByIdAndUpdate( 
+                    req.users.userId, 
+                    { $pull : { articles: articleDelete.id } } 
+                );    
+                await Comment.deleteMany( { articleId: articleDelete.id } );          
                 res.status(201).json({ articleDelete })
             } else {
                 res.status(201).json( { error: "this article is not created by you" })
@@ -98,7 +101,7 @@ module.exports = {
                 .populate({ path: 'author', model: User })
                 const following = !req.users ? false : 
                                   article.author.following.includes(req.users.userId);
-            res.status(200).json({
+            res.status(201).json({
                 article:
                 {
                     slug: article.slug,
@@ -123,6 +126,58 @@ module.exports = {
         }
     },
   
+    favoriteArticle: async ( req, res, next ) => {
+        try {
+            const checkArticle = await Article.findOne( { slug: req.params.slug } );
+
+            if(!checkArticle) {
+                return res.status(400).json({errors: {body: [" No article found"]}});
+            }
+
+            if ( checkArticle.favorited.includes(req.users.userId) ) {
+                res.status( 400 ).json( { error: "this article already favorited by you" } );
+            } else {
+                const favoritedArticle =  await Article.findOneAndUpdate(
+                     { slug: req.params.slug }, 
+                     { $push: { favorited: req.users.userId } },
+                     { new: true }
+                 );
+                await User.findByIdAndUpdate( 
+                    id, { $push: { favorites: favoritedArticle.id } }
+                 );
+
+                res.status( 201 ).json( { favoritedArticle } )
+            }
+        } catch ( err ) {
+            return next( err )
+        }
+    },
+
+    unfavoriteArticle: async ( req, res, next ) => {
+        try {
+            const checkArticle = await Article.findOne( { slug: req.params.slug } );
+            
+            if(!checkArticle) {
+                return res.status(400).json({errors: {body: [" No article found"]}});
+            }
+
+            if ( !checkArticle.favorited.includes(req.users.userId) ) {
+                res.status( 400 ).json( { error: "this article already unfavorited by you" } );
+            } else {
+                const unfavoritedArticle =  await Article.findOneAndUpdate(
+                    { slug: req.params.slug }, 
+                    { $pull: { favorited: req.users.userId } },
+                    { new: true }
+                );
+               await User.findByIdAndUpdate( 
+                   id, { $pull: { favorites: unfavoritedArticle.id } }
+                );
+               res.status( 201 ).json( { unfavoritedArticle } )
+            }
+        } catch ( error ) {
+            return  next( error )
+        }
+    }
 
 }
 
