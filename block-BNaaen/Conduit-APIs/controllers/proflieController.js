@@ -6,7 +6,6 @@ module.exports = {
     try {
       const username = req.params.username;
       const user = await User.findOne({ username }).select('username bio image following').populate({ path:'articles', model: Article})
-      // const article =  await Article.find({author: user.id})
       console.log("arti",user)
 
       if (!req.users) {
